@@ -8,6 +8,11 @@ require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+
+app.get("/",async(req,res)=>{
+    res.send("Working..");
+})
+
 app.use("/api/v1/user",userRoute);
 
 
