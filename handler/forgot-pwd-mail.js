@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const { response } = require('../routes');
+const { response } = require('../routes/user');
 require('dotenv').config();
 
 const sendMail = (email, otp) => {

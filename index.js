@@ -1,16 +1,16 @@
 const express = require("express");
-const userRoute = require('./routes/index')
+const routes = require('./routes/index')
 const app = express();
 
-require("./config");
+require("./config/db");
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use("/api/v1/user",userRoute);
+app.use("/api/v1", routes);
 
-app.get("/",async(req,res)=>{
+app.get("/", async (req, res) => {
     res.send("Working..");
 })
 
