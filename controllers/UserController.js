@@ -1,41 +1,41 @@
 const User = require('../models/User');
 const bcrypt = require("bcrypt");
 const sendMail = require("../handler/forgot-pwd-mail");
+const jwt = require("jsonwebtoken");
+require('dotenv').config();
 
 const newUser = async (req, res) => {
     try {
         let payload = req.body;
-        payload['password'] = bcrypt.hashSync(payload.password, 10);
-        const user = new User(payload);
-        const result = await user.save();
-        res.status(200).json({ message: 'User registered successfully' });
+        const userName = await User.find({ username: payload.username });
+        if (userName.length != 0) {
+            throw new Error("Username already Exists.")
+        } else {
+            payload['password'] = bcrypt.hashSync(payload.password, 10);
+            const user = new User(payload);
+            await user.save();
+            res.status(200).json({ message: 'User registered successfully' });
+        }
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(400).json({ error: err.message });
     }
 }
 
 const userLogin = async (req, res) => {
-    const { username, password } = req.body;
 
     try {
-        if (!username || !password) {
-            res.status(400).json({
-                "message": "Please Enter Username and Password"
-            });
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) {
+            throw new Error('User Not Found')
         } else {
-            const user = await User.findOne({ "username": username });
-            if (user) {
-                const result = await bcrypt.compare(password, user.password);
-                (!result) ? res.status(200).json({ "message": "Invalid User Credentials" })
-                    : res.status(200).json({ "message": `Welcome, ${user.name}` });
-            } else {
-                res.status(400).json({ "message": "User Not Found!" });
-            }
+            const result = await bcrypt.compare(password, user.password);
+            if (!result) throw new Error('Invalid credentials');
+            const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY);
+            return res.status(200).json({ message: `Welcome, ${user.name}`, token });
         }
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(401).json({ error: error.message });
     }
 }
 

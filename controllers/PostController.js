@@ -3,7 +3,8 @@ const Post = require("../models/Post")
 // API for create new a post
 const newPost = async (req, res) => {
     try {
-        const payload = req.body;
+        let payload = req.body;
+        payload["user"] = req.user.userId;
         const post = new Post(payload);
         await post.save();
         res.status(201).json(post);
@@ -15,7 +16,6 @@ const newPost = async (req, res) => {
 // API for get all post
 const getPost = async (req, res) => {
     try {
-        // const posts = await Post.find().populate('user');
         const posts = await Post.aggregate([
             {
                 $lookup: {
